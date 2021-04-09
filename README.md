@@ -11,12 +11,6 @@ Para el siguiente laboratorio se deben realizar los siguientes ejercicios:
 1. Del directorio de [ejercicios de refuerzo](./ejercicios_refuerzo) realizar solo el **ejercicio 7** de la sección de **problemas de programación**.
 2. Realizar el **shell de unix** propuesto en la carpeta [enunciado](./enunciado) empleando los diferentes test que se brindan para tal fin.
 
-## Material a la mano ##
-
-Adjunto con el presente laboratorio, hay dos documentos de la UJI (Universitat Jaume I) muy buenos con los conceptos y con ejemplos que necesitan para el desarrollo la practica. Estos documentos son:
-1. [Introducción a la programación con C](./s29.pdf)
-2. [100 ejercicios resueltos de Sistemas Operativos](./s30.pdf)
-
 ## Importante comprender ##
 
 Para poder realizar la practica, es necesario comprender cabalmente los siguientes conceptos:
@@ -25,7 +19,7 @@ Para poder realizar la practica, es necesario comprender cabalmente los siguient
 3. Manejo de archivos en C ([link de la teoria](https://github.com/dannymrock/UdeA-SO-Lab/tree/master/lab0/lab0b/parte6))
 4. Manejo de la consola de linux (Es de utilidad conocer la filosofia de la consola de la linea de comandos para hacerse una idea de la funcionalidad basica que tendrá la consola a implementar ya que esta última, es una versión reducida de la primera. [Link de la teoria](https://github.com/dannymrock/UdeA-SO-Lab/tree/master/lab0/lab0a/consola_linux)).
    
-Si no maneja estos conceptos; sobre el primero, por favor estudielos con detenimiento, de la comprensión de estos depende el desarrollo de la practica. Tambien, revise la teoria mas simple en caso de no creer tener la suficiente familiaridad con el lenguaje C. Es necesario la comprensión de conceptos mas basicos en C para poder manejar archivos como la implementación de funciones, el manejo de punteros y los arreglos.
+Si no maneja estos conceptos por favor estudielos con detenimiento ya que de la comprensión de estos depende el buen desarrollo de la practica. Revise también la teoria mas simple en caso de no creer tener la suficiente familiaridad con el lenguaje C. Es necesario la comprensión de conceptos mas basicos en C para poder manejar archivos como la implementación de funciones, el manejo de punteros y los arreglos.
 
-Tenga además en cuenta que se agregan bastantes ejemplos con el fin de que los analice con el fin de comprenderlos. Si tiene dificultades para entenderlos pregunte sin pena en el foro de piazza del curso y vea los videos que allí se compartieron. Recuerden, No hay pregunta boba, bobo es el que no pregunta
+Tenga además en cuenta que se agregan bastantes ejemplos con el fin de que los analice con el fin de comprenderlos. Si tiene dificultades para entenderlos pregunte sin pena en el foro de moodle del curso y vea los videos que allí se compartieron.
 
