@@ -1,0 +1,10 @@
+total 152
+drwxr-xr-x 1 steve steve  4096 May  8 17:15 .
+drwxr-xr-x 1 steve steve  4096 Apr 26 21:45 ..
+-rw-r--r-- 1 steve steve 87565 Apr 26 21:45 LinuxTutorial2.pdf
+-rw-r--r-- 1 steve steve 16645 Apr 26 21:45 README.md
+-rw------- 1 steve steve     0 May  8 17:15 algo
+-rwxr-xr-x 1 steve steve   124 Apr 26 21:45 test-wish.sh
+drwxr-xr-x 1 steve steve  4096 Apr 26 21:45 tests
+-rwxr-xr-x 1 steve steve 22928 May  8 17:14 wish
+-rw-r--r-- 1 steve steve 11034 May  8 17:14 wish.c
