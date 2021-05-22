@@ -10,12 +10,7 @@
 #define MAX_SIZE 100
 #define DELIMITERS " \t\r\n\a\0"
 
-char *system_commands[50] = {
-    "/bin/",
-    "/usr/bin/",
-    "./",
-    NULL
-};
+
 
 char error_message[30] = "An error has occurred\n";
 
@@ -43,17 +38,34 @@ char ** split_line(char *command_line, int *n);
 int command_cd(char **args);
 int wish_launch(char **args);
 void command_exit(char **args);
-void command_path(char **args);
+
+void command_path(char **args,char**system_commands);
 int wish_launch_redirect(char **args, char *file);
-int absolute_path(char **arg_2);
+
+int absolute_path(char **arg_2,char**system_commands);
 int find_parallel_paths(int n, int ampersan_position[n], char **arg_2);
-int parallel_paths(int n, int ampersan_position[n] , char **arg_2);
+
+int parallel_paths(int n, int ampersan_position[n] , char **arg_2,char**system_commands);
 int wish_launch_parallel(int n, int ampersan_position[n] , char **arg_2);
 
 int main(int argc, char*argv[]){
+
+    
+    
+    char **system_commands = NULL;
+    system_commands = malloc(3 * sizeof(*system_commands)); 
+    for (int i = 0; i < 3; i++){
+        system_commands[i] = malloc((MAX_SIZE) * sizeof(*system_commands[i]));
+    }
+    strcpy(system_commands[0],"./");
+    strcpy(system_commands[1],"/bin/");
+    system_commands[2]=NULL;
+    
+
     char str[MAX_SIZE];
     int *n = (int*)malloc(sizeof(int*));
-    if(argc == 1){/*interactivo*/
+    if(argc == 1){
+        /*interactivo*/
         do{
             printf("wish> ");
             fgets(str, MAX_SIZE, stdin);
@@ -62,19 +74,15 @@ int main(int argc, char*argv[]){
                 p++;
             }
             *p = '\0';
-            //char ** arg_2=  malloc(MAX_SIZE * sizeof(char*));
             char ** arg_2 = split_line(str,n);
-
             builtin_command command = str_to_command(arg_2[0]);
-            
-            
             if(command != not_command){
                 switch(command){
                     case cd:
                         command_cd(arg_2);
                         break;
                     case path:
-                        command_path(arg_2);
+                        command_path(arg_2,system_commands);
                         
                         break;
                     case endup:
@@ -82,13 +90,12 @@ int main(int argc, char*argv[]){
                         break;
                     default:
                         write(STDERR_FILENO, error_message, strlen(error_message));
-                        //perror("wish: unkwon command ");
                 }
             } else {
                 int result=0;
                 int i=0;
                 if(*n==0){
-                    int exist_path=absolute_path(arg_2);
+                    int exist_path=absolute_path(arg_2, system_commands);
                     if(exist_path==1){
                         int i_found=0,aux=0;
                         do{
@@ -107,10 +114,8 @@ int main(int argc, char*argv[]){
                             //encontro 1 >
                             if(arg_2[i_found+1]==NULL){
                                 write(STDERR_FILENO, error_message, strlen(error_message));
-                                //printf("wish: unkwon output file \n");
                             }
                             else if(arg_2[i_found+2]!=NULL){
-                                //printf("wish: multiple output file  \n");
                                 write(STDERR_FILENO, error_message, strlen(error_message));
                             }
                             else{
@@ -122,54 +127,42 @@ int main(int argc, char*argv[]){
                             }
                         }
                         else{
-                            //printf("wish: multiple >  \n");
+                            //encontro + de 1 >
                             write(STDERR_FILENO, error_message, strlen(error_message));
                         }
                     }
                     else{
-                        //printf("wish: not found command in path");
                         write(STDERR_FILENO, error_message, strlen(error_message));
                     }
                 }
                 else{
-                    //printf("entro en paralelo \n");
                     //paralelo
                     int ampersan_position[*n];
                     for(int i=0;i<*n;i++){
                         ampersan_position[i]=0;
                     }
                     int parallel_error=find_parallel_paths(*n,ampersan_position,arg_2);
-                    /*for(int i=0;i<*n;i++){
-                        printf("%d\n",ampersan_position[i]);
-                    }*/
                     
                     if(parallel_error>0){
-                        //printf("encontro los & paralelo \n");
-                        parallel_error=parallel_paths(*n,ampersan_position,arg_2);
+                        
+                        parallel_error=parallel_paths(*n,ampersan_position,arg_2,system_commands);
                         if(parallel_error>0){
-                          /*  printf("asigno los path paralelo \n");
-                            printf("el comando 0 esta en :%s\n",arg_2[0]);
-                            for(int i=0;i<*n;i++){
-                                printf("el comando %d esta en :%s\n",i+1,arg_2[ampersan_position[i]+1]);
-                            }*/
+                          
                             wish_launch_parallel(*n,ampersan_position,arg_2);
-                            //printf("ejecuto launch paralelo \n");
+                          
                         }else{
                             write(STDERR_FILENO, error_message, strlen(error_message));
                         }
-
                     }else{
                         write(STDERR_FILENO, error_message, strlen(error_message));
                     }
-                    
-                    
                 }
                 
             }
         }while(1);
     }else{
         perror("wish: bash command ");
-        /*bash*/
+        /*bash*/ //solo falta esto Y_Y
 
     }
     
@@ -193,7 +186,9 @@ int find_parallel_paths(int n, int ampersan_position[n] , char **arg_2){
     }while (arg_2[i]!=NULL);
     return 1;
 }
-int parallel_paths(int n, int ampersan_position[n] , char **arg_2){
+
+
+int parallel_paths(int n, int ampersan_position[n] , char **arg_2, char **system_commands){
     int aux=0;
     int band=0;
     for(int i =0;i<=n;i++){
@@ -223,7 +218,7 @@ int parallel_paths(int n, int ampersan_position[n] , char **arg_2){
     return 1;
 }
 
-int absolute_path(char **arg_2){
+int absolute_path(char **arg_2,char **system_commands){
     int i=0;
     char *path1 = malloc(MAX_SIZE * sizeof(char*));
     do{
@@ -232,7 +227,6 @@ int absolute_path(char **arg_2){
         strcat(path1,arg_2[0]);
         if (access( path1 , X_OK) == 0 ){
             arg_2[0] = path1;
-            //result = wish_launch(arg_2);
             return 1;
         }
         i++;
@@ -259,28 +253,56 @@ void command_exit(char **args){
     exit(0);
   }  
 }
-void command_path(char **args){
+
+
+void command_path(char **args, char**system_commands){
   int i=0;
   if (args[1] == NULL)  {
-    printf("se pierde : %s\n", system_commands[0]);
-    //i=0;
-    do{
+    /*while (system_commands[i]!=NULL){
       printf("%s\n", system_commands[i]);
       i++;
-    }while (system_commands[i]!=NULL);
+    }*/
+    while(system_commands[i]!=NULL)
+    {
+        system_commands[i]=NULL;
+        free(system_commands[i]);
+    }
+    free(system_commands);
+    system_commands = malloc(2 * sizeof(*system_commands)); 
+    for (int k = 0; k < 2; k++){
+        system_commands[k] = malloc((20) * sizeof(*system_commands[k]));
+    }
+    strcpy(system_commands[0],"./");
+    system_commands[1]=NULL;
+    
   } else {
-    //i=0;
+      int j=0;
+    while(system_commands[j]!=NULL)
+    {
+        system_commands[j]=NULL;
+        free(system_commands[j]);
+    }
+    free(system_commands);
+    int count =0;
     do{
-      //printf("el %d a guardar es :%s\n",i,args[i+1]);
-      //printf("antes el %d en sc es:%s\n",i,system_commands[i]);
-      system_commands[i] = NULL;
-      system_commands[i] = args[i+1];
-      //printf("despues el %d en sc es:%s\n",i,system_commands[i]);
-      //strcpy(system_commands[i],args[i+1] );
+        count++;
+        i++;
+    }while (args[i]!=NULL);
+
+    
+    system_commands = malloc(count * sizeof(*system_commands)); 
+    for (int k = 0; k < count; k++){
+        system_commands[k] = malloc((20) * sizeof(*system_commands[k]));
+    }
+    strcpy(system_commands[0],"./");
+    
+    i=1;
+    do{
+      strcpy(system_commands[i],args[i]);
       i++;
     }while (args[i]!=NULL);
-    //strcpy(system_commands[i], NULL);
-    //system_commands[i]=NULL;
+    system_commands[i]=NULL;
+    
     
   }  
 }
@@ -298,7 +320,9 @@ char ** split_line(char *command_line, int *n){
         }
         position++;
         token = strtok(NULL, DELIMITERS);
+        
     }
+    
     tokens[position] = NULL;
     *n=aux;
     return tokens;
@@ -324,53 +348,71 @@ int wish_launch(char **args){
 int wish_launch_parallel(int n, int ampersan_position[n] , char **arg_2){
     int status;
     pid_t pids[n+1];
-    /*for(int i=0;i<=n;i++){
+    for(int i=0;i<=n;i++){
         pids[i]=0;
-    }*/
+    }
     int aux=0;
-    for(int i =0;i<=n;i++){
-        
-        
-        // Child process
+    for(int i = 0; i<=n; i++){
+        pid_t pid = fork();
+            if (pid == 0) {
             char ** arg = malloc(MAX_SIZE * sizeof(char*));
             int p=0;
-            do{
+            while(strcmp(arg_2[aux],"&")!=0 && arg_2[aux]!=NULL){
                 arg[p]=arg_2[aux];
                 printf("p value:%d  arg :%s aux value%d\n",p,arg[p],aux);
                 p+=1;
                 aux+=1;
-            }while(strcmp(arg_2[aux],"&")!=0 && arg_2[aux]!=NULL);
-            arg[p]=NULL;
-            for(int x=0; x<p;x++){
-                printf("%s\n",arg[x]);
             }
-            printf("contador");
-            pid_t pid = fork();
-            if (pid == 0) {
-            execv(arg[0], arg);
+            arg[p]=NULL;
+            printf("comando %s", arg[0]);
+            printf("comando en p+1 %s", arg[p+1]);
+            printf("llego a execv");
+            //int x=0;
+            /*while(arg[x]!=NULL){
+                    printf("arg %d : %s\n",x,arg[x]);
+                    x++;
+            }*/
+            sleep(1);
             
+            execv(arg[0], arg);
+            //printf("error execv %d\n", test);
+            exit( 0 );
+            /*for(int x=0; x<p;x++){
+            printf("%s\n",arg[x]);
+            }*/
+            
+            // Child process
             
         } else if (pid < 0) {
             // Error forking
-            perror("wish");
+            printf("pid<0");
+            //perror("wish");
         } else {
             // Parent process
             //wait(NULL);
-            printf("en padre asigna nuevo pid en pids %d\n",i);
+
+            //printf("en padre asigna nuevo pid en pids %d\n",i);
             pids[i]=pid;
+            //printf("nuevo hijo %d\n",pids[i]);
+         
         }
         if(i<n){
             aux=ampersan_position[i]+1;
-        }else{
+        }/*else{
             aux+=1;
+        }*/
+        if(i==n){
+            //printf("aux: %d",aux);
         }
+        
+    }
+    for(int i=0;i<(n+1);i++){
+        printf("esperando el hijo : %d\n",pids[i]);
+        waitpid(pids[i],&status ,0);
+        printf("termino el hijo : %d\n",pids[i]);
     }
     //printf("esta en padre\n");
-    for(int i=0;i<=n;i++){
-        
-        waitpid(pids[i],NULL,0);
-        printf("%d\n",pids[i]);
-    }
+   
     //printf("terminaron los hijos\n");
     return 1;
 }
@@ -392,7 +434,7 @@ int wish_launch_redirect(char **args, char *file){
     } else if (pid < 0) {
         // Error forking
         write(STDERR_FILENO, error_message, strlen(error_message));
-        //perror("wish");
+        
     } else {
         // Parent process
        wait(NULL);
