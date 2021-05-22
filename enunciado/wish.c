@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
-#define MAX_SIZE 100
+#define MAX_SIZE 200
 #define DELIMITERS " \t\r\n\a\0"
 
 
@@ -74,7 +74,7 @@ int main(int argc, char*argv[]){
         }while(1);
     }else{
         /*batch*/
-        if (argc < 2) {
+        if (argc > 2) {
             write(STDERR_FILENO, error_message, strlen(error_message));
 		    return EXIT_FAILURE;
 	    }
@@ -95,78 +95,87 @@ int main(int argc, char*argv[]){
 }
 
 void run_shell(char str[MAX_SIZE], int*n,char**system_commands){
-    char ** arg_2 = split_line(str,n);
-    builtin_command command = str_to_command(arg_2[0]);
-    if(command != not_command){
-        switch(command){
-            case cd:
-                command_cd(arg_2);
-                break;
-            case path:
-                command_path(arg_2,system_commands);
-                break;
-            case endup:
-                command_exit(arg_2);
-                break;
-            default:
-                write(STDERR_FILENO, error_message, strlen(error_message));
-            }
-    } else {
-        int result=0;
-        int i=0;
-        if(*n==0){
-            int exist_path=absolute_path(arg_2, system_commands);
-            if(exist_path==1){
-                int i_found=0,aux=0;
-                do{
-                    if (strcmp(arg_2[i],">")==0 ){
-                        aux=aux+1;
-                        i_found=i;
-                    }else if(strchr(arg_2[i],'>')!=NULL){
-                        aux=aux+2;
+    
+    if (str[0] != '\0'){
+        
+        char ** arg_2 = split_line(str,n);
+        if(arg_2[0]!="\0" & arg_2[0]!=NULL){
+            builtin_command command = str_to_command(arg_2[0]);
+            if(command != not_command){
+                switch(command){
+                    case cd:
+                        command_cd(arg_2);
+                        break;
+                    case path:
+                        command_path(arg_2,system_commands);
+                        break;
+                    case endup:
+                        command_exit(arg_2);
+                        break;
+                    default:
+                        write(STDERR_FILENO, error_message, strlen(error_message));
                     }
-                    i++;
-                }while (arg_2[i]!=NULL);
-                if(aux==0){
-                    //no encontro ningun >
-                    wish_launch(arg_2);
-                }else if(aux==1){
-                    //encontro 1 >
-                    if(arg_2[i_found+1]==NULL){
-                        write(STDERR_FILENO, error_message, strlen(error_message));
-                    }else if(arg_2[i_found+2]!=NULL){
-                        write(STDERR_FILENO, error_message, strlen(error_message));
+            }else {
+                
+                int result=0;
+                int i=0;
+                if(*n==0){
+                    int exist_path=absolute_path(arg_2, system_commands);
+                    if(exist_path==1){
+                        int i_found=0,aux=0;
+                        do{
+                            if (strcmp(arg_2[i],">")==0 ){
+                                aux=aux+1;
+                                i_found=i;
+                            }else if(strchr(arg_2[i],'>')!=NULL){
+                                aux=aux+2;
+                            }
+                            i++;
+                        }while (arg_2[i]!=NULL);
+                        if(aux==0){
+                            //no encontro ningun >
+                            wish_launch(arg_2);
+                        }else if(aux==1){
+                            //encontro 1 >
+                            if(arg_2[i_found+1]==NULL){
+                                write(STDERR_FILENO, error_message, strlen(error_message));
+                            }else if(arg_2[i_found+2]!=NULL){
+                                write(STDERR_FILENO, error_message, strlen(error_message));
+                            }else{
+                                char *file  = malloc(MAX_SIZE * sizeof(char*));
+                                strcpy(file,arg_2[i_found+1]);
+                                arg_2[i_found]=NULL;
+                                arg_2[i_found+1]=NULL;
+                                wish_launch_redirect(arg_2,file);
+                            }
+                        }else{
+                            //encontro + de 1 >
+                            write(STDERR_FILENO, error_message, strlen(error_message));
+                        }
                     }else{
-                        char *file  = malloc(MAX_SIZE * sizeof(char*));
-                        strcpy(file,arg_2[i_found+1]);
-                        arg_2[i_found]=NULL;
-                        arg_2[i_found+1]=NULL;
-                        wish_launch_redirect(arg_2,file);
+                        write(STDERR_FILENO, error_message, strlen(error_message));
                     }
                 }else{
-                    //encontro + de 1 >
-                    write(STDERR_FILENO, error_message, strlen(error_message));
+                    //paralelo
+                    int ampersan_position[*n];
+                    for(int i=0;i<*n;i++){
+                        ampersan_position[i]=0;
+                    }
+                    int parallel_error=find_parallel_paths(*n,ampersan_position,arg_2);
+                    if(parallel_error>0){
+                        parallel_error=parallel_paths(*n,ampersan_position,arg_2,system_commands);
+                        if(parallel_error>0){
+                            wish_launch_parallel(*n,ampersan_position,arg_2);
+                        }else{
+                            write(STDERR_FILENO, error_message, strlen(error_message));
+                        }
+                    }else{
+                        write(STDERR_FILENO, error_message, strlen(error_message));
+                    }
                 }
-            }else{
-                write(STDERR_FILENO, error_message, strlen(error_message));
             }
         }else{
-            //paralelo
-            int ampersan_position[*n];
-            for(int i=0;i<*n;i++){
-                ampersan_position[i]=0;
-            }
-            int parallel_error=find_parallel_paths(*n,ampersan_position,arg_2);
-            if(parallel_error>0){
-                parallel_error=parallel_paths(*n,ampersan_position,arg_2,system_commands);
-                if(parallel_error>0){
-                    wish_launch_parallel(*n,ampersan_position,arg_2);
-                }else{
-                    write(STDERR_FILENO, error_message, strlen(error_message));
-                }
-            }else{
-                write(STDERR_FILENO, error_message, strlen(error_message));
-            }
+            
         }
     }
 }
